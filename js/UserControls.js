@@ -8,7 +8,7 @@ UserControls.prototype.init = function() {
 	var controlsAndDefaults = [
 		{inputType: 'number', name: 'x', value: 33},
 		{inputType: 'number', name: 'y', value: 3},
-		{inputType: 'slider', name: 'quality', value: 0.5},
+		{inputType: 'slider', name: 'quality', value: 0.0},
 		{inputType: 'checkbox', name: 'rivers', value: true},
 		{inputType: 'slider', name: 'terrain', value: 0.25},
 		{inputType: 'slider', name: 'scale', value: 0.5},
@@ -16,6 +16,8 @@ UserControls.prototype.init = function() {
 		{inputType: 'slider', name: 'flat', value: 0.2},
 		{inputType: 'slider', name: 'shore', value: 0.2},
 		{inputType: 'slider', name: 'shore slope', value: 0.5},
+		{inputType: 'slider', name: 'city scale', value: 0.5},
+		{inputType: 'slider', name: 'roads', value: 0.0},
 	];
 
 

@@ -2,16 +2,7 @@ function ProceduralGroundFactory(){
 	this.cachedGroundMesh = null;
 }
 
-ProceduralGroundFactory.prototype.create = function(size, controls) {
-	var qualityLevel = 6 + 3*controls.quality;
-	var numSegments = 2*Math.round(0.5*Math.pow(2, qualityLevel)); // even number
-
-	var segments = {
-		x: numSegments,
-		y: numSegments
-	};
-
-	// Geometry
+ProceduralGroundFactory.prototype.getGeometry = function(size, controls) {
 	tic()
 	var groundGeometry
 	if(this.cachedGroundMesh && this.cachedGroundMesh.quality === controls.quality){
@@ -19,15 +10,17 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 		groundGeometry = this.cachedGroundMesh.geometry;
 	}
 	else{
-		console.log('NOT USING CACHE');
-		groundGeometry = new THREE.PlaneGeometry(size.x, size.y, segments.x, segments.y);
-		groundGeometry.segments = segments;
+		console.log('CREATING NEW GEOMETRY - ' + controls.dim.x +'x'+controls.dim.y);
+		groundGeometry = new THREE.PlaneGeometry(size.x, size.y, controls.dim.x, controls.dim.x);
 		groundGeometry.size = size;
 	}
+	return groundGeometry
 	toc(' - init groundGeometry');
+};
 
-	
-	var vertexIndex = 0;
+ProceduralGroundFactory.prototype.create = function(size, controls) {
+	var groundGeometry = this.getGeometry(size, controls);
+
 	var sumHeight = 0;
 	var noiseLevels = 10;
 	var scale = controls.modelScale;
@@ -47,21 +40,20 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 		var t = v.y * oneOverSize.y;
 
 		var height = 0;
-
 		for (var j = 0; j < noiseLevels; j++) {
 			var twoPowI = Math.pow(2, j);
-			height+= (0.7/(twoPowI)) * noise.simplex2(twoPowI*(scale*s + controls.x), twoPowI*(scale*t + controls.y));
+			height+= (0.7/(twoPowI)) * noise.simplex2(twoPowI*(scale*s + controls.seed.x), twoPowI*(scale*t + controls.seed.y));
 		};
+		height = controls.rivers ? Math.abs(height) : height;
+
 		v.originalHeight = height;
 
-		height = controls.rivers ? Math.abs(height) : height;
 		height*= heightLimit;
 		v.z = height;
 
 		sumHeight+= height;
 		minMaxHeight.add(height);
 	};
-
 	toc(' - calculate heightmap');
 
 	groundGeometry.computeFaceNormals();
@@ -71,15 +63,12 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 	groundGeometry.normalsNeedUpdate = true;
 
 	// Material
-	var groundMaterial = new THREE.MeshPhongMaterial( { color: 0x99bb55, shininess: 0} );
+	var groundMaterial = new THREE.MeshPhongMaterial( { color: 0x99bb55, shininess: 0, wireframe: false} );
 	//groundMaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.VertexColors });
-	groundMaterial.vertexColors = THREE.VertexColors;
-
-	
-	//var groundMaterial = new THREE.MeshBasicMaterial({wireframe: true});
 
 	var newGroundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
-	newGroundMesh.segments = segments;
+	newGroundMesh.segments = controls.dim;
+	newGroundMesh.geometry.segments = controls.dim;	
 	newGroundMesh.quality = controls.quality;
 	newGroundMesh.size = size;
 	newGroundMesh.size.heightLimit = heightLimit;
@@ -90,7 +79,7 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 	newGroundMesh.rotation.x = -Math.PI/2;
 
 	if(controls.quality !== 0){
-		this.cachedGroundMesh = newGroundMesh;	
+		this.cachedGroundMesh = newGroundMesh;
 	}
 	return newGroundMesh;
 };

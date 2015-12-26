@@ -10,18 +10,26 @@ function ProceduralWorldFactory(size){
 	this.surroundingFactory = new ProceduralSurroundingFactory();
 	this.roadNetworkFactory = new ProceduralRoadNetworkFactory({x: 10, y: 10});
 
+	this.roadNetworkFactory = new ProceduralRoadNetworkFactory({x: 10, y: 10});
+
 }
 
 ProceduralWorldFactory.prototype.preprocessControls = function(controls) {
 	controls.modelScale = Math.pow(2, 6*(controls.scale-0.5)-2);
 
 	var step = 0.1;
-	controls.x *= step;
-	controls.y *= step;
+	controls.seed = {
+		x: step * controls.x,
+		y: step * controls.y,
+	};
+
+	var qualityLevel = 6 + 3*controls.quality;
+	var segments = 2*Math.round(0.5*Math.pow(2, qualityLevel)); // ensure even number
+	controls.dim = {x: segments, y: segments};
 };
 
 ProceduralWorldFactory.prototype.createAndSetScene = function(controls) {
-	this.preprocessControls(controls);
+	
 
 	var groundMesh;
 
@@ -63,6 +71,7 @@ ProceduralWorldFactory.prototype.createAndSetScene = function(controls) {
 	];
 
 	function executeCreationSteps(){
+		self.preprocessControls(controls);
 		// create a scene
 		scene = new THREE.Scene();
 		self.addLights(scene);
@@ -91,8 +100,9 @@ ProceduralWorldFactory.prototype.createAndSetScene = function(controls) {
 	var buildStepDelay = 300*0;
 
 	if(buildStepDelay === 0 && controls.quality !== 0){
+		
+		// Override quality and create lo fi scene
 		console.log('\nLOW QUALITY CREATION');
-
 		var originalQuality = controls.quality;
 		controls.quality = 0;
 		executeCreationSteps();
@@ -144,6 +154,4 @@ ProceduralWorldFactory.prototype.addLights = function(scene) {
 ProceduralWorldFactory.prototype.addPersistentObjects = function(scene, controls) {
 	scene.add(persistentObjects);
 };
-
-
 

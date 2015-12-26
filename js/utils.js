@@ -27,7 +27,7 @@ THREE.PlaneGeometry.prototype.vertexIndexForSegment = function(x, y) {
 	};
 	if (x < -this.hns.x || this.hns.x < x ||
 		y < -this.hns.y || this.hns.y < y){
-		throw new Error('out of bounds');
+		throw new Error('out of bounds: ' + x + ', ' + y + '  hns: ' + this.hns.x + ', ' + this.hns.y);
 	}
 	return Math.round((x + this.hns.x) - (y - this.hns.y)*(this.segments.x+1));
 };

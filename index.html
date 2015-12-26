@@ -39,6 +39,7 @@
 		<script src="js/ProceduralShoreApplier.js"></script>
 		<script src="js/ProceduralSurroundingFactory.js"></script>
 		<script src="js/ProceduralRoadNetworkFactory.js"></script>
+		<script src="js/ProceduralBuildingFactory.js"></script>
 
 		<script src="js/UserControls.js"></script>
 
@@ -173,8 +174,7 @@
 			mouse.set( ( event.layerX / window.innerWidth ) * 2 - 1, - ( event.layerY / window.innerHeight ) * 2 + 1 );
 			raycaster.setFromCamera( mouse, camera );
 
-			var intersects = raycaster.intersectObjects([ scene.children[2] ]);
-
+			var intersects = raycaster.intersectObjects([ scene.children[3] ]);
 			if ( intersects.length > 0 && event.shiftKey) {
 				var intersect = intersects[ 0 ];
 				marker.position.x = intersect.point.x;
