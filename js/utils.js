@@ -29,7 +29,8 @@ THREE.PlaneGeometry.prototype.vertexIndexForSegment = function(x, y) {
 		y < -this.hns.y || this.hns.y < y){
 		throw new Error('out of bounds: ' + x + ', ' + y + '  hns: ' + this.hns.x + ', ' + this.hns.y);
 	}
-	return Math.round((x + this.hns.x) - (y - this.hns.y)*(this.segments.x+1));
+
+	return Math.round(x + this.hns.x) - Math.round(y - this.hns.y)*(this.segments.x+1);
 };
 
 THREE.PlaneGeometry.prototype.vertexIndexForPosition = function(x, y) {
@@ -46,7 +47,7 @@ THREE.PlaneGeometry.prototype.vertexIndexForPosition = function(x, y) {
 	return this.vertexIndexForSegment(x, y);
 };
 
-THREE.PlaneGeometry.prototype.vertexAt = function(x, y) {
+THREE.PlaneGeometry.prototype.vertexAtPosition = function(x, y) {
 	return this.vertices[this.vertexIndexForPosition(x, y)];
 };
 
