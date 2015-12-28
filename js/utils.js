@@ -29,7 +29,7 @@ THREE.PlaneGeometry.prototype.vertexIndexForSegment = function(x, y) {
 		y < -this.hns.y || this.hns.y < y){
 		throw new Error('out of bounds: ' + x + ', ' + y + '  hns: ' + this.hns.x + ', ' + this.hns.y);
 	}
-
+	
 	return Math.round(x + this.hns.x) - Math.round(y - this.hns.y)*(this.segments.x+1);
 };
 

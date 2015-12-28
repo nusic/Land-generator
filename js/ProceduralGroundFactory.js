@@ -1,25 +1,28 @@
-function ProceduralGroundFactory(){
+function ProceduralGroundFactory(label){
+	this.label = label;
+	
 	this.cachedGroundMesh = null;
+	this.dirtyBuildGroundMesh = null;
 }
 
-ProceduralGroundFactory.prototype.getGeometry = function(size, controls) {
-	tic()
+ProceduralGroundFactory.prototype.getGeometry = function(controls) {
 	var groundGeometry
 	if(this.cachedGroundMesh && this.cachedGroundMesh.quality === controls.quality){
-		console.log('USING CACHE');
 		groundGeometry = this.cachedGroundMesh.geometry;
+	}
+	else if((controls.dirtyBuild || controls.quality === 0) && this.dirtyBuildGroundMesh){
+		groundGeometry = this.dirtyBuildGroundMesh.geometry;
 	}
 	else{
 		console.log('CREATING NEW GEOMETRY - ' + controls.dim.x +'x'+controls.dim.y);
-		groundGeometry = new THREE.PlaneGeometry(size.x, size.y, controls.dim.x, controls.dim.x);
-		groundGeometry.size = size;
+		groundGeometry = new THREE.PlaneGeometry(controls.size.x, controls.size.y, controls.dim.x, controls.dim.x);
+		groundGeometry.size = controls.size;
 	}
 	return groundGeometry
-	toc(' - init groundGeometry');
 };
 
-ProceduralGroundFactory.prototype.create = function(size, controls) {
-	var groundGeometry = this.getGeometry(size, controls);
+ProceduralGroundFactory.prototype.create = function(controls) {
+	var groundGeometry = this.getGeometry(controls);
 
 	var sumHeight = 0;
 	var noiseLevels = 10;
@@ -29,11 +32,10 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 	var minMaxHeight = new MinMax();
 
 	var oneOverSize = {
-		x: 1 / size.x,
-		y: 1 / size.y,
+		x: 1 / controls.size.x,
+		y: 1 / controls.size.y,
 	}
 
-	tic();
 	for (var i = 0; i < groundGeometry.vertices.length; i++) {
 		var v = groundGeometry.vertices[i];
 		var s = v.x * oneOverSize.x;
@@ -54,7 +56,6 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 		sumHeight+= height;
 		minMaxHeight.add(height);
 	};
-	toc(' - calculate heightmap');
 
 	groundGeometry.computeFaceNormals();
 	groundGeometry.computeVertexNormals();
@@ -70,7 +71,7 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 	newGroundMesh.segments = controls.dim;
 	newGroundMesh.geometry.segments = controls.dim;	
 	newGroundMesh.quality = controls.quality;
-	newGroundMesh.size = size;
+	newGroundMesh.size = controls.size;
 	newGroundMesh.size.heightLimit = heightLimit;
 	newGroundMesh.size.avgHeight = sumHeight / groundGeometry.vertices.length;
 	newGroundMesh.size.minHeight = minMaxHeight.min;
@@ -81,6 +82,11 @@ ProceduralGroundFactory.prototype.create = function(size, controls) {
 	if(controls.quality !== 0){
 		this.cachedGroundMesh = newGroundMesh;
 	}
+	else{
+		this.dirtyBuildGroundMesh = newGroundMesh;
+	}
+
+	controls.groundMesh = newGroundMesh;
 	return newGroundMesh;
 };
 

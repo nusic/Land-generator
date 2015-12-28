@@ -1,5 +1,5 @@
-function ProceduralShoreApplier(){
-
+function ProceduralShoreApplier(label){
+	this.label = label;
 }
 
 function modifyByHeight(groundMesh, h0, h1, f, ref){
@@ -60,7 +60,8 @@ function modifyByHeight(groundMesh, h0, h1, f, ref){
 	groundMesh.geometry.normalsNeedUpdate = true;
 }
 
-ProceduralShoreApplier.prototype.create = function(groundMesh, controls){
+ProceduralShoreApplier.prototype.create = function(controls){
+	var groundMesh = controls.groundMesh;
 	var scale = controls.modelScale;
 	var seaLevel = (controls.sea_level-0.5);
 

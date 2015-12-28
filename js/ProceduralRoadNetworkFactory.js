@@ -1,4 +1,6 @@
-function ProceduralRoadNetworkFactory () {
+function ProceduralRoadNetworkFactory (label) {
+	this.label = label;
+
 	this.lineGeometry = new THREE.Geometry();
 	this.lineGeometry.vertices.push(new THREE.Vector3(0, -100, 0));
 	this.lineGeometry.vertices.push(new THREE.Vector3(0, 0, 0));
@@ -32,8 +34,7 @@ ProceduralRoadNetworkFactory.prototype.createLineBetween = function(v1, v2, heig
 	return lineMesh;
 };
 
-ProceduralRoadNetworkFactory.prototype.createRoadSegmentBetween = function(v1, v2, width, height, dist2) {
-	var length = Math.sqrt(dist2);
+ProceduralRoadNetworkFactory.prototype.createRoadSegmentBetween = function(v1, v2, width, height, length) {
 
 	// Road is aligned along the x axis and width along y axis in local coordinates.
 	var roadSegmentGeometry = new THREE.PlaneGeometry(length + width, width, 1, 1);
@@ -73,17 +74,18 @@ ProceduralRoadNetworkFactory.prototype.createNeedleMeshAt = function(x, y, heigh
 	return needleGroup;
 };
 
-ProceduralRoadNetworkFactory.prototype.create = function(groundMesh, controls) {
-	var roadNetworkGroup = new THREE.Object3D();
+ProceduralRoadNetworkFactory.prototype.create = function(controls) {
+	var roadMeshGroup = new THREE.Object3D();
+
+	if(!controls.cityness || controls.dirtyBuild) return roadMeshGroup;
+
+	var groundMesh = controls.groundMesh;
 	var scale = controls.modelScale;
 	var height = 100 / scale;
 	var flatMid = controls.flatStart + 0.5*(controls.flatEnd-controls.flatStart);
 	var qualityFactor = (1.25-controls.quality)*(1.25-controls.quality);
-	var distThres = 0.05*scale*qualityFactor;
+	var distThres = scale*qualityFactor*controls.cityness;
 
-	function manhattan(a,b){
-		return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
-	}
 
 	function norm2(a,b){
 		var dx = a.x - b.x;
@@ -92,25 +94,32 @@ ProceduralRoadNetworkFactory.prototype.create = function(groundMesh, controls) {
 	}
 
 	var distance = norm2;
-	var integrity = 10*(5 + 5*controls.city_scale)/scale;
-	var maxRoadLength = (1 + 1*controls.roads) * integrity;
-	if(distance === norm2){
-		integrity *= integrity;
-		maxRoadLength *= maxRoadLength;
-	}
+	var integrity = 100*(1.3 - 1*controls.city_scale);///scale;
+	var maxRoadLength = 1.7 * integrity;
+
+	var integrity2 = integrity*integrity;
+	var maxRoadLength2 = maxRoadLength*maxRoadLength;
+
+	var roadWidth = 0.1*integrity;
+	var roadHeight = groundMesh.flatHeight+2;
 
 	// Collect points that will connect road segments.
 	// Use kd tree to make sure we don't get points too 
 	// Close to each other
-	var posTree = new kdTree([], distance, ['x', 'y']);
+	var roadAnchorPointTree = new kdTree([], distance, ['x', 'y']);
 	var data = [];
+	var heightFract = 1 / (1 + 10*controls.cityness);
 	for (var i = 0; i < groundMesh.geometry.vertices.length; i++) {
 		var v = groundMesh.geometry.vertices[i];
-		if(Math.abs(v.originalHeight - flatMid) < distThres && v.z === groundMesh.flatHeight){
-			var result = posTree.nearest(v, 1, integrity);
+		if(v.z !== groundMesh.flatHeight) continue;
+
+		var heightDistFromMid = Math.abs(v.originalHeight - flatMid);
+		//var heightDistFromMidFracted = (heightDistFromMid % heightFract) * heightFract;
+		if(heightDistFromMid < distThres){
+			var result = roadAnchorPointTree.nearest(v, 1, integrity2);
 			if(!result.length){
 				data.push(v);
-				posTree.insert(v);
+				roadAnchorPointTree.insert(v);
 			}
 		}
 	};
@@ -119,34 +128,54 @@ ProceduralRoadNetworkFactory.prototype.create = function(groundMesh, controls) {
 	// Use this to make sure we dont create duplicate roads, 
 	// eg from A to B, AND from B to A. One is enough!
 	var roadSegmentsMap = {};
-
+	var roads = [];
+	var maxRoadConnections = controls.cityness < 0.5 ? 3 : 4;
+	var roadSegmentsMidTree = new kdTree([], distance, ['x', 'y']);
 	for (var i = 0; i < data.length; i++) {
-		var v = data[i];
-		var needleMesh = this.createNeedleMeshAt(v.x, v.y, height, scale);
-		roadNetworkGroup.children.push(needleMesh);
-		
-		var result = posTree.nearest(v, 3, maxRoadLength);
+		var anchor = data[i];
+		var result = roadAnchorPointTree.nearest(anchor, maxRoadConnections, maxRoadLength2);
 		for (var j = 0; j < result.length; j++) {
-			var nv = result[j];
-			if(nv[1] === 0) continue;
+			var neighbor = result[j];
+			var neighborAnchor = neighbor[0];
+			var neighborDistanceSquared = neighbor[1];
 
-			
-			var xMid = 0.5*(v.x+nv[0].x);
-			var yMid = 0.5*(v.y+nv[0].y);
+			if(neighborDistanceSquared === 0) {
+				continue; 
+			}
+
+			var xMid = 0.5*(anchor.x+neighborAnchor.x);
+			var yMid = 0.5*(anchor.y+neighborAnchor.y);
+			var midAnchor = {x: xMid, y: yMid};
+
+			if(roadSegmentsMidTree.nearest(midAnchor, 1, integrity).length){
+				continue;
+			}
 			
 			if(roadSegmentsMap[xMid] === undefined) roadSegmentsMap[xMid] = {};
 			else if (roadSegmentsMap[xMid][yMid] === 1){
-				continue;
+				//continue;
 			}
-			roadSegmentsMap[xMid][yMid] = 1;
 
-			var width = 0.1*height;
-			var lengthSquared = nv[1];
-			var roadSegmentMesh = this.createRoadSegmentBetween(v, nv[0], width, groundMesh.flatHeight+1, lengthSquared);
-			roadNetworkGroup.children.push(roadSegmentMesh);
+			// Add road
+			roadSegmentsMap[xMid][yMid] = 1;
+			roadSegmentsMidTree.insert(midAnchor);
+			
+			var roadLength = Math.sqrt(neighborDistanceSquared);
+			roads.push([anchor, neighborAnchor, roadLength]);
+
+			var roadSegmentMesh = this.createRoadSegmentBetween(anchor, neighborAnchor, roadWidth, roadHeight, roadLength);
+			roadMeshGroup.children.push(roadSegmentMesh);
 		};
 	};
 
-	//console.log('roadNetworkGroup.children.length: ' + roadNetworkGroup.children.length);
-	return roadNetworkGroup;
+	controls.roadData = {
+		roads: roads,
+		roadWidth: roadWidth,
+		roadHeight: roadHeight,
+		maxRoadLength: maxRoadLength,
+		integrity: integrity,
+	};
+
+	//console.log('roadMeshGroup.children.length: ' + roadMeshGroup.children.length);
+	return roadMeshGroup;
 };

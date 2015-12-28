@@ -167,16 +167,16 @@
 		function onMouseMove(event){
 			event.preventDefault();
 
-			if(!marker){
-				marker = createMarker()
-			}
-
 			mouse.set( ( event.layerX / window.innerWidth ) * 2 - 1, - ( event.layerY / window.innerHeight ) * 2 + 1 );
 			raycaster.setFromCamera( mouse, camera );
 
 			var intersects = raycaster.intersectObjects([ scene.children[3] ]);
 			if ( intersects.length > 0 && event.shiftKey) {
 				var intersect = intersects[ 0 ];
+
+				if(!marker){
+					marker = createMarker()
+				}
 				marker.position.x = intersect.point.x;
 				marker.position.y = intersect.point.y;
 				marker.position.z = intersect.point.z;
