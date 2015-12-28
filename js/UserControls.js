@@ -1,6 +1,7 @@
 function UserControls(domElement){
 	this.domElement = domElement;
 	this.controlElements = [];
+	this.rebuildFromMap = {};
 	this.init();
 }
 
@@ -16,20 +17,21 @@ UserControls.prototype.init = function() {
 		{inputType: 'slider', name: 'flat', value: 0.2},
 		{inputType: 'slider', name: 'shore', value: 0.2},
 		{inputType: 'slider', name: 'shore slope', value: 0.5},
-		{inputType: 'slider', name: 'cityness', value: 0.0},
-		{inputType: 'slider', name: 'city scale', value: 0.5},
-		
+		{inputType: 'slider', name: 'cityness', value: 0.0, rebuildFrom: 'roads'},
+		{inputType: 'slider', name: 'city scale', value: 0.5, rebuildFrom: 'roads'},
 	];
 
-
 	for (var i = 0; i < controlsAndDefaults.length; i++) {
+		// Init control html
 		var inputType = controlsAndDefaults[i].inputType;
 		var name = controlsAndDefaults[i].name;
 		var value = controlsAndDefaults[i].value;
 		var controlElement = this[inputType](name, value);
 		this.controlElements.push(controlElement);
+
+		// init rebuildFromMap
+		this.rebuildFromMap[controlElement.attr('id')] = controlsAndDefaults[i].rebuildFrom;
 	};
-	
 };
 
 UserControls.prototype.createDefualtInput = function(name, value) {
@@ -39,8 +41,10 @@ UserControls.prototype.createDefualtInput = function(name, value) {
 	var propertyName = name.replace(/ /g, '_');
 	$inputElement.attr('id', propertyName);
 
-	$inputElement.change(function(/*event*/){
-		rebuildScene();
+	var self = this;
+	$inputElement.change(function(event){
+		var rebuildFrom = self.rebuildFromMap[event.target.id];
+		rebuildScene(rebuildFrom);
 	});
 
 	$(this.domElement).append($inputElement);

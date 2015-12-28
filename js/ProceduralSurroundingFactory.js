@@ -3,7 +3,7 @@ function ProceduralSurroundingFactory(label){
 }
 
 ProceduralSurroundingFactory.prototype.create = function(controls) {
-	var groundMesh = controls.groundMesh;
+	var groundMesh = controls.groundData.groundMesh;
 	var width = groundMesh.size.x;
 	var depth = groundMesh.size.y;
 	var seaLevel = groundMesh.size.heightLimit*(controls.sea_level-0.5);

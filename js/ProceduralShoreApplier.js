@@ -61,7 +61,7 @@ function modifyByHeight(groundMesh, h0, h1, f, ref){
 }
 
 ProceduralShoreApplier.prototype.create = function(controls){
-	var groundMesh = controls.groundMesh;
+	var groundMesh = controls.groundData.groundMesh;
 	var scale = controls.modelScale;
 	var seaLevel = (controls.sea_level-0.5);
 
@@ -75,8 +75,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	var flatSize = controls.flat;
 	var flatEnd = flatStart + flatSize;
 
-	controls.flatStart = flatStart;
-	controls.flatEnd = flatEnd;
+	
 
 
 	/*
@@ -124,4 +123,13 @@ ProceduralShoreApplier.prototype.create = function(controls){
 
 	groundMesh.geometry.verticesNeedUpdate = true;
 	groundMesh.geometry.normalsNeedUpdate = true;
+
+	controls.flatStart = flatStart;
+	controls.flatEnd = flatEnd;
+
+	this.data = {
+		flatStart: flatStart,
+		flatEnd: flatEnd,
+		flatHeight: flatHeight,
+	}
 };

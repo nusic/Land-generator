@@ -1,14 +1,18 @@
 function ProceduralWorldFactory(size){
+	
+	this.size = size;
 	this.lastQuality;
 
-	this.size = size || {x: 2000, y: 2000};
-	this.groundFactory = new ProceduralGroundFactory('ground');
-	this.waterFactory = new ProceduralWaterFactory('water');
-	this.shoreApplier = new ProceduralShoreApplier('shores');
-	this.surroundingFactory = new ProceduralSurroundingFactory('surrounding');
-	this.roadNetworkFactory = new ProceduralRoadNetworkFactory('roads');
-	this.buildingFactory = new ProceduralBuildingFactory('buildings');
+	this.initScene();
 
+	this.factoryList = [
+		new ProceduralGroundFactory('ground'),
+		new ProceduralWaterFactory('water'),
+		new ProceduralShoreApplier('shores'),
+		new ProceduralSurroundingFactory('surrounding'),
+		new ProceduralRoadNetworkFactory('roads'),
+		new ProceduralBuildingFactory('buildings'),
+	]
 }
 
 ProceduralWorldFactory.prototype.preprocessControls = function(controls) {
@@ -32,93 +36,70 @@ ProceduralWorldFactory.prototype.preprocessControls = function(controls) {
 
 	// size of world in world coordinates
 	controls.size = {
-		x: 2000,
-		y: 2000,
+		x: this.size.x,
+		y: this.size.y,
 	};
 };
 
-ProceduralWorldFactory.prototype.createAndSetScene = function(controls) {
-	
+ProceduralWorldFactory.prototype.clearScene = function(rebuildFrom) {
+	if(!rebuildFrom){
+		scene.children.splice(this.numStartChildren);
+	}
+	else{
+		var rebuildFromIndex = scene.children.indexOf(rebuildFrom);
+		scene.children.splice(rebuildFromIndex-1);
+	}
+};
 
-	var groundMesh;
-	var roadMeshGroup;
+ProceduralWorldFactory.prototype.getIndexOfFirstFactory = function(rebuildFrom) {
+	if(!rebuildFrom){
+		return 0
+	}
+	else{
+		var rebuildFromIndex = this.factoryList.map(function (f){ 
+			return f.label; 
+		}).indexOf(rebuildFrom);
+		return rebuildFromIndex;
+	}
+};
+
+ProceduralWorldFactory.prototype.createAndSetScene = function(controls, rebuildFrom) {
 
 	var self = this;
-	var sceneCreationSteps = [
-		{	label: 'ground', fun: function(){
-				groundMesh = self.groundFactory.create(controls);
-				scene.add(groundMesh);
-			}
-		},
-		{
-			label: 'shores', fun: function(){
-				self.shoreApplier.create(controls);
-			},	
-		},
-		{
-			label: 'water', fun: function(){
-				var waterMesh = self.waterFactory.create(controls);
-				scene.add(waterMesh);
-			}
-		},
-		{
-			label: 'surrounding', fun: function(){
-				var surroundingMesh = self.surroundingFactory.create(controls);
-				scene.add(surroundingMesh);
-			}
-		},
-		{
-			label: 'roads', fun: function(){
-				roadMeshGroup = self.roadNetworkFactory.create(controls);
-				scene.add(roadMeshGroup);
-			}
-		},
-		{
-			label: 'buildings', fun: function(){
-				var buildingMeshGroup = self.buildingFactory.create(controls);
-				scene.add(buildingMeshGroup);
-			}
-		}
-	];
 
 	function executeCreationSteps(){
 		self.preprocessControls(controls);
-
-		// create a scene
-		scene = new THREE.Scene();
-		self.addLights(scene);
-		self.addCamera(scene);
-		self.addPersistentObjects(scene, controls);
-
-		sceneCreationSteps.forEach(function (sceneCreationStep, i){
-			if(buildStepDelay){
-				setTimeout(function(){
-					tic();
-					sceneCreationStep.fun();
-					toc(sceneCreationStep.label);
-				}, i * buildStepDelay);
-			}
-			else{
+		self.clearScene(rebuildFrom);
+		var firstFactoryIndex = self.getIndexOfFirstFactory(rebuildFrom);
+		self.factoryList.forEach(function (factory, i){
+			
+			if(firstFactoryIndex <= i){
 				tic();
-				sceneCreationStep.fun();
-				toc(sceneCreationStep.label);
+				factory.data = null;
+				var product = factory.create(controls);
+				if(product){
+					product.name = factory.label;
+					scene.add(product);
+				}
+				toc(factory.label);
 			}
+			else console.log(factory.label + ': not executed');
+
+			controls[factory.label + 'Data'] = factory.data;
 		});
 	}
 
-
-
-	//var buildStepDelay = 1500;
-	var buildStepDelay = 300*0;
-
-	if(buildStepDelay === 0 && controls.quality !== 0){
+	if(controls.quality > 0){
 		
 		// Override quality and create lo fi scene
 		console.log('\nDIRTY BUILD');
+
 		var originalQuality = controls.quality;
 		controls.quality = 0;
 		controls.dirtyBuild = true;
+
 		executeCreationSteps();
+
 		controls.quality = originalQuality;
 		controls.dirtyBuild = false;
 
@@ -136,17 +117,27 @@ ProceduralWorldFactory.prototype.createAndSetScene = function(controls) {
 		}, 30);
 	}
 	else{
-		console.log('TRUE QUALITY CREATION');
+		console.log('TRUE BUILD');
 		executeCreationSteps();
 		self.lastQuality = controls.quality;
 	}
 }
 
+ProceduralWorldFactory.prototype.initScene = function() {
+	scene = new THREE.Scene();
+	this.addLights(scene);
+	this.addCamera(scene);
+	this.addPersistentObjects(scene);
+
+	this.numStartChildren = scene.children.length;
+	console.log('inited scene with ' + this.numStartChildren + ' children');
+};
+
 ProceduralWorldFactory.prototype.addCamera = function(scene) {
 	if(!camera){
 		camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
-		camera.position.set(0, 1500, 1500);
-		camera.far = 1000000;	
+		camera.position.set(0, 1000, 1000);
+		camera.far = 1000000;
 	}
 	scene.add(camera);
 };

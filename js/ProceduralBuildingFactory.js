@@ -15,11 +15,14 @@ ProceduralBuildingFactory.prototype.createBuilding = function(scale) {
 ProceduralBuildingFactory.prototype.create = function(controls) {
 	var buildingMeshGroup = new THREE.Object3D();
 
-	if(!controls.roadData) return buildingMeshGroup;
+	if(controls.dirtyBuild || !controls.roadsData) {
+		return buildingMeshGroup;
+	}
 
 
-	var groundMesh = controls.groundMesh;
-	var buildingScale = 0.2 * controls.roadData.integrity;
+	var groundMesh = controls.groundData.groundMesh;
+	var roads = controls.roadsData.roads;
+	var buildingScale = 0.2 * controls.roadsData.integrity;
 
 
 	function norm2(a,b){
@@ -30,8 +33,8 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 
 
 	var houseTree = new kdTree([], norm2, ['x', 'y']);
-	for (var i = 0; i < controls.roadData.roads.length; i++) {
-		var roadSegment = controls.roadData.roads[i];
+	for (var i = 0; i < roads.length; i++) {
+		var roadSegment = roads[i];
 		var v1 = roadSegment[0];
 		var v2 = roadSegment[1];
 		var xMid = 0.5*(v1.x + v2.x);

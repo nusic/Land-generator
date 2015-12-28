@@ -1,5 +1,6 @@
 function ProceduralGroundFactory(label){
 	this.label = label;
+	this.data;
 	
 	this.cachedGroundMesh = null;
 	this.dirtyBuildGroundMesh = null;
@@ -86,7 +87,9 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 		this.dirtyBuildGroundMesh = newGroundMesh;
 	}
 
-	controls.groundMesh = newGroundMesh;
+	this.data = {
+		groundMesh: newGroundMesh,
+	}
 	return newGroundMesh;
 };
 

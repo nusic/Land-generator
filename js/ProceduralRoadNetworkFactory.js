@@ -1,5 +1,6 @@
 function ProceduralRoadNetworkFactory (label) {
 	this.label = label;
+	this.data;
 
 	this.lineGeometry = new THREE.Geometry();
 	this.lineGeometry.vertices.push(new THREE.Vector3(0, -100, 0));
@@ -76,15 +77,18 @@ ProceduralRoadNetworkFactory.prototype.createNeedleMeshAt = function(x, y, heigh
 
 ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var roadMeshGroup = new THREE.Object3D();
+	if(!controls.cityness || controls.dirtyBuild) {
+		return roadMeshGroup;
+	}
 
-	if(!controls.cityness || controls.dirtyBuild) return roadMeshGroup;
-
-	var groundMesh = controls.groundMesh;
+	var groundMesh = controls.groundData.groundMesh;
+	var shoresData = controls.shoresData;
 	var scale = controls.modelScale;
 	var height = 100 / scale;
-	var flatMid = controls.flatStart + 0.5*(controls.flatEnd-controls.flatStart);
+	var flatMid = 0.5*(shoresData.flatEnd+shoresData.flatStart);
+	var worldFlatHeight = shoresData.flatHeight * groundMesh.size.heightLimit;
 	var qualityFactor = (1.25-controls.quality)*(1.25-controls.quality);
-	var distThres = scale*qualityFactor*controls.cityness;
+	var distThres = (0.2+scale)*qualityFactor*controls.cityness*(1.1 - controls.city_scale);
 
 
 	function norm2(a,b){
@@ -101,7 +105,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var maxRoadLength2 = maxRoadLength*maxRoadLength;
 
 	var roadWidth = 0.1*integrity;
-	var roadHeight = groundMesh.flatHeight+2;
+	var roadHeight = worldFlatHeight+2;
 
 	// Collect points that will connect road segments.
 	// Use kd tree to make sure we don't get points too 
@@ -110,8 +114,9 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var data = [];
 	var heightFract = 1 / (1 + 10*controls.cityness);
 	for (var i = 0; i < groundMesh.geometry.vertices.length; i++) {
+
 		var v = groundMesh.geometry.vertices[i];
-		if(v.z !== groundMesh.flatHeight) continue;
+		if(v.z !== worldFlatHeight) continue;
 
 		var heightDistFromMid = Math.abs(v.originalHeight - flatMid);
 		//var heightDistFromMidFracted = (heightDistFromMid % heightFract) * heightFract;
@@ -153,7 +158,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 			
 			if(roadSegmentsMap[xMid] === undefined) roadSegmentsMap[xMid] = {};
 			else if (roadSegmentsMap[xMid][yMid] === 1){
-				//continue;
+				continue;
 			}
 
 			// Add road
@@ -168,7 +173,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 		};
 	};
 
-	controls.roadData = {
+	this.data = {
 		roads: roads,
 		roadWidth: roadWidth,
 		roadHeight: roadHeight,

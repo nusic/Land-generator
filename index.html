@@ -70,7 +70,7 @@
 		var rayCaster;
 
 		var userControls;
-		var worldFactory = new ProceduralWorldFactory();
+		var worldFactory;
 		var marker;
 		var persistentObjects = new THREE.Object3D();
 
@@ -111,6 +111,7 @@
 			// Create Procedural Scene //
 			/////////////////////////////
 			var controls = userControls.getControls();
+			worldFactory = new ProceduralWorldFactory({ x:1000, y: 1000});
 			worldFactory.createAndSetScene(controls);
 
 
@@ -143,10 +144,10 @@
 			return true; // Ready to render
 		}
 
-		function rebuildScene(){			
+		function rebuildScene(rebuildFrom){
 			var controls = userControls.getControls();
-			console.log('user controls:', controls);
-			worldFactory.createAndSetScene(userControls.getControls());
+			//console.log('user controls:', controls);
+			worldFactory.createAndSetScene(controls, rebuildFrom);
 		}
 
 		// animation loop
