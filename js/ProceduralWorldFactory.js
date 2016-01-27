@@ -2,6 +2,7 @@ function ProceduralWorldFactory(size){
 	
 	this.size = size;
 	this.lastQuality;
+	this.numStartChildren;
 
 	this.initScene();
 
@@ -12,8 +13,48 @@ function ProceduralWorldFactory(size){
 		new ProceduralSurroundingFactory('surrounding'),
 		new ProceduralRoadNetworkFactory('roads'),
 		new ProceduralBuildingFactory('buildings'),
-	]
+	];
 }
+
+
+ProceduralWorldFactory.prototype.initScene = function() {
+	scene = new THREE.Scene();
+	this.addLights(scene);
+	this.addCamera(scene);
+	this.addPersistentObjects(scene);
+
+	this.numStartChildren = scene.children.length;
+	console.log('inited scene with ' + this.numStartChildren + ' children');
+};
+
+ProceduralWorldFactory.prototype.addCamera = function(scene) {
+	if(!camera){
+		camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 1, 10000 );
+		camera.position.set(0, 1000, 1000);
+		camera.far = 1000000;
+	}
+	scene.add(camera);
+};
+
+ProceduralWorldFactory.prototype.addLights = function(scene) {
+	var lightGroup = new THREE.Object3D();
+
+	// And there was light!
+	var hemiLight = new THREE.HemisphereLight( 0x333333, 1 );
+	lightGroup.children.push(hemiLight);
+
+	var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
+	directionalLight.position.set( -1, 1, 0 );
+	lightGroup.children.push(directionalLight);
+
+	scene.add(lightGroup);
+};
+
+ProceduralWorldFactory.prototype.addPersistentObjects = function(scene, controls) {
+	scene.add(persistentObjects);
+};
+
+
 
 ProceduralWorldFactory.prototype.preprocessControls = function(controls) {
 	// model scale
@@ -41,6 +82,7 @@ ProceduralWorldFactory.prototype.preprocessControls = function(controls) {
 	};
 };
 
+
 ProceduralWorldFactory.prototype.clearScene = function(rebuildFrom) {
 	if(!rebuildFrom){
 		scene.children.splice(this.numStartChildren);
@@ -64,18 +106,21 @@ ProceduralWorldFactory.prototype.getIndexOfFirstFactory = function(rebuildFrom) 
 };
 
 ProceduralWorldFactory.prototype.createAndSetScene = function(controls, rebuildFrom) {
-
+	console.log(controls);
 	var self = this;
 
 	function executeCreationSteps(){
 		self.preprocessControls(controls);
+
+		// Remove any scene objects that we will rebuild
 		self.clearScene(rebuildFrom);
 		var firstFactoryIndex = self.getIndexOfFirstFactory(rebuildFrom);
 		self.factoryList.forEach(function (factory, i){
 			
 			if(firstFactoryIndex <= i){
 				tic();
-				factory.data = null;
+				// delete any previous data for this factory
+				deepDelete('data', factory);
 				var product = factory.create(controls);
 				if(product){
 					product.name = factory.label;
@@ -122,41 +167,4 @@ ProceduralWorldFactory.prototype.createAndSetScene = function(controls, rebuildF
 		self.lastQuality = controls.quality;
 	}
 }
-
-ProceduralWorldFactory.prototype.initScene = function() {
-	scene = new THREE.Scene();
-	this.addLights(scene);
-	this.addCamera(scene);
-	this.addPersistentObjects(scene);
-
-	this.numStartChildren = scene.children.length;
-	console.log('inited scene with ' + this.numStartChildren + ' children');
-};
-
-ProceduralWorldFactory.prototype.addCamera = function(scene) {
-	if(!camera){
-		camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000 );
-		camera.position.set(0, 1000, 1000);
-		camera.far = 1000000;
-	}
-	scene.add(camera);
-};
-
-ProceduralWorldFactory.prototype.addLights = function(scene) {
-	var lightGroup = new THREE.Object3D();
-
-	// And there was light!
-	var hemiLight = new THREE.HemisphereLight( 0x333333, 1 );
-	lightGroup.children.push(hemiLight);
-
-	var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
-	directionalLight.position.set( -1, 1, 0 );
-	lightGroup.children.push(directionalLight);
-
-	scene.add(lightGroup);
-};
-
-ProceduralWorldFactory.prototype.addPersistentObjects = function(scene, controls) {
-	scene.add(persistentObjects);
-};
 

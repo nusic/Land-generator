@@ -86,10 +86,10 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var scale = controls.modelScale;
 	var height = 100 / scale;
 	var flatMid = 0.5*(shoresData.flatEnd+shoresData.flatStart);
+	var flatRange = (shoresData.flatEnd-shoresData.flatStart);
 	var worldFlatHeight = shoresData.flatHeight * groundMesh.size.heightLimit;
 	var qualityFactor = (1.25-controls.quality)*(1.25-controls.quality);
-	var distThres = (0.2+scale)*qualityFactor*controls.cityness*(1.1 - controls.city_scale);
-
+	var distThres = Math.pow(controls.cityness, 2) * flatRange;
 
 	function norm2(a,b){
 		var dx = a.x - b.x;
@@ -99,51 +99,47 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 
 	var distance = norm2;
 	var integrity = 100*(1.3 - 1*controls.city_scale);///scale;
-	var maxRoadLength = 1.7 * integrity;
+	var maxRoadLength = 5 * integrity;
 
 	var integrity2 = integrity*integrity;
 	var maxRoadLength2 = maxRoadLength*maxRoadLength;
 
 	var roadWidth = 0.1*integrity;
-	var roadHeight = worldFlatHeight+2;
+	var roadHeight = worldFlatHeight + 0.5; // Push roads up a little above ground
 
 	// Collect points that will connect road segments.
 	// Use kd tree to make sure we don't get points too 
 	// Close to each other
 	var roadAnchorPointTree = new kdTree([], distance, ['x', 'y']);
-	var data = [];
-	var heightFract = 1 / (1 + 10*controls.cityness);
+	var roadAnchorPoints = [];
 	for (var i = 0; i < groundMesh.geometry.vertices.length; i++) {
 
 		var v = groundMesh.geometry.vertices[i];
 		if(v.z !== worldFlatHeight) continue;
 
 		var heightDistFromMid = Math.abs(v.originalHeight - flatMid);
-		//var heightDistFromMidFracted = (heightDistFromMid % heightFract) * heightFract;
 		if(heightDistFromMid < distThres){
 			var result = roadAnchorPointTree.nearest(v, 1, integrity2);
 			if(!result.length){
-				data.push(v);
+				roadAnchorPoints.push(v);
 				roadAnchorPointTree.insert(v);
 			}
 		}
 	};
 
-	// Maps road center x and y position to boolean if such road has been created
-	// Use this to make sure we dont create duplicate roads, 
-	// eg from A to B, AND from B to A. One is enough!
-	var roadSegmentsMap = {};
 	var roads = [];
 	var maxRoadConnections = controls.cityness < 0.5 ? 3 : 4;
 	var roadSegmentsMidTree = new kdTree([], distance, ['x', 'y']);
-	for (var i = 0; i < data.length; i++) {
-		var anchor = data[i];
+	for (var i = 0; i < roadAnchorPoints.length; i++) {
+		var anchor = roadAnchorPoints[i];
 		var result = roadAnchorPointTree.nearest(anchor, maxRoadConnections, maxRoadLength2);
 		for (var j = 0; j < result.length; j++) {
 			var neighbor = result[j];
 			var neighborAnchor = neighbor[0];
 			var neighborDistanceSquared = neighbor[1];
 
+			// Discard road segment if its distance is 0 
+			// (i.e anchor and neighborAnchor are the same)
 			if(neighborDistanceSquared === 0) {
 				continue; 
 			}
@@ -152,19 +148,31 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 			var yMid = 0.5*(anchor.y+neighborAnchor.y);
 			var midAnchor = {x: xMid, y: yMid};
 
-			if(roadSegmentsMidTree.nearest(midAnchor, 1, integrity).length){
-				continue;
-			}
-			
-			if(roadSegmentsMap[xMid] === undefined) roadSegmentsMap[xMid] = {};
-			else if (roadSegmentsMap[xMid][yMid] === 1){
+			// Discard road segment if its mid point is close to another 
+			// mid point (i.e not allowing crossings)
+			if(roadSegmentsMidTree.nearest(midAnchor, 1, 0.2*integrity2).length){
 				continue;
 			}
 
-			// Add road
-			roadSegmentsMap[xMid][yMid] = 1;
+			// Discard road segment if its mid point is close to any
+			// anchorpoint (i.e not allowing two short road segments to fulfill
+			// the same purpose as one long road segment)
+			if(roadAnchorPointTree.nearest(midAnchor, 1, 0.2*integrity2).length){
+				continue;
+			}
+
+			// Discard road segment if the ground height at its mid point is 
+			// higher that the flat height (i.e not allowing roads to crash
+			// into small mountains, but allow bridges over water)
+			if(groundMesh.geometry.vertexAtPosition(xMid, yMid).z > worldFlatHeight){
+				continue;
+			}
+
+
+
+			// Add road segment
 			roadSegmentsMidTree.insert(midAnchor);
-			
+
 			var roadLength = Math.sqrt(neighborDistanceSquared);
 			roads.push([anchor, neighborAnchor, roadLength]);
 

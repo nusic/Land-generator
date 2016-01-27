@@ -51,3 +51,17 @@ THREE.PlaneGeometry.prototype.vertexAtPosition = function(x, y) {
 	return this.vertices[this.vertexIndexForPosition(x, y)];
 };
 
+// http://stackoverflow.com/questions/5059951/deleting-js-object-properties-a-few-levels-deep
+function deepDelete(target, context) {
+	// Assume global scope if none provided.
+	context = context || window;
+
+	var targets = target.split('.');
+
+	if (targets.length > 1){
+		deepDelete(targets.slice(1).join('.'), context[targets[0]]);
+	}
+	else{
+		delete context[target];
+	}
+}
