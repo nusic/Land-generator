@@ -10,6 +10,7 @@ function ProceduralWorldFactory(size){
 		new ProceduralGroundFactory('ground'),
 		new ProceduralWaterFactory('water'),
 		new ProceduralShoreApplier('shores'),
+		new ProceduralGroundColorApplier('color'),
 		new ProceduralSurroundingFactory('surrounding'),
 		new ProceduralRoadNetworkFactory('roads'),
 		new ProceduralBuildingFactory('buildings'),

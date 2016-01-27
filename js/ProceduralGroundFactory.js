@@ -28,7 +28,7 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 	var sumHeight = 0;
 	var noiseLevels = 10;
 	var scale = controls.modelScale;
-	var heightLimit = 1+500*controls.terrain/scale;
+	var heightLimit = 500*controls.terrain/scale;
 
 	var minMaxHeight = new MinMax();
 

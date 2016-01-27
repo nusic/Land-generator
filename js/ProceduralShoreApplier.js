@@ -108,33 +108,6 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	controls.flatStart = flatStart;
 	controls.flatEnd = flatEnd;
 
-
-	// DEBUG COLORS
-	groundMesh.material = new THREE.MeshPhongMaterial( { 
-	    color: 0xf0f0f0, 
-	    shading: THREE.FlatShading,
-	    //shading: THREE.SmoothShading,
-	    vertexColors: THREE.VertexColors 
-	});
-
-	for (var faceIndex = 0; faceIndex < groundMesh.geometry.faces.length; faceIndex++) {
-		groundMesh.geometry.faces[faceIndex].vertexColors.length = 0;
-	}
-	for (var faceIndex = 0; faceIndex < groundMesh.geometry.faces.length; faceIndex++) {
-		var face = groundMesh.geometry.faces[faceIndex];
-		var abc = ['a', 'b', 'c'];
-		for (var vertexIndex = 0; vertexIndex < 3; vertexIndex++) {
-			var faceVertexIndex = face[abc[vertexIndex]];
-			var height = groundMesh.geometry.vertices[faceVertexIndex].z / groundMesh.size.heightLimit;
-
-			if(height < shoreStart) face.vertexColors.push(new THREE.Color(0x605030));
-			else if(height < flatStart) face.vertexColors.push(new THREE.Color(0xc2b280));
-			else if(height < flatEnd) face.vertexColors.push(new THREE.Color(0x888888));
-			else face.vertexColors.push(new THREE.Color(0x66cc66));
-		};
-	};
-
-
 	this.data = {
 		flatStart: flatStart,
 		flatEnd: flatEnd,
