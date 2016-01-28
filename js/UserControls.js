@@ -17,7 +17,7 @@ UserControls.prototype.init = function() {
 		{inputType: 'slider', name: 'flat', value: 0.2},
 		{inputType: 'slider', name: 'shore', value: 0.2},
 		{inputType: 'slider', name: 'shore slope', value: 0.5},
-		{inputType: 'slider', name: 'cityness', value: 0.08, rebuildFrom: 'roads'},
+		{inputType: 'slider', name: 'cityness', value: 0.11, rebuildFrom: 'roads'},
 		{inputType: 'slider', name: 'city scale', value: 0.5, rebuildFrom: 'roads'},
 	];
 

@@ -62,6 +62,9 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 	var roads = controls.roadsData.roads;
 	var buildingScale = 0.2 * controls.roadsData.integrity;
 
+	var worldFlatHeight = controls.shoresData.flatHeight * groundMesh.size.heightLimit;
+	var worldFlatEpsilon = controls.shoresData.flatEpsilon * groundMesh.size.heightLimit;
+
 	function norm2(a,b){
 		var dx = a.x - b.x;
 		var dy = a.y - b.y;
@@ -88,7 +91,8 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 
 		try{
 			// If the position not is on flat ground, discard this building
-			if(groundMesh.geometry.vertexAtPosition(x, y).z !== groundMesh.flatHeight){
+			var height = groundMesh.geometry.vertexAtPosition(x, y).z;
+			if(Math.abs(height - worldFlatHeight) > worldFlatEpsilon){
 				continue;
 			}
 		}

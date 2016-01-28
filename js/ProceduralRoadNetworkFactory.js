@@ -88,6 +88,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var flatMid = 0.5*(shoresData.flatEnd+shoresData.flatStart);
 	var flatRange = (shoresData.flatEnd-shoresData.flatStart);
 	var worldFlatHeight = shoresData.flatHeight * groundMesh.size.heightLimit;
+	var worldFlatEpsilon = shoresData.flatEpsilon * groundMesh.size.heightLimit;
 	var qualityFactor = (1.25-controls.quality)*(1.25-controls.quality);
 	var distThres = Math.pow(controls.cityness, 2) * flatRange;
 
@@ -105,7 +106,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var maxRoadLength2 = maxRoadLength*maxRoadLength;
 
 	var roadWidth = 0.1*integrity;
-	var roadHeight = worldFlatHeight + 0.5; // Push roads up a little above ground
+	var roadHeight = worldFlatHeight + worldFlatEpsilon; // Push roads up a little above ground
 
 	// Collect points that will connect road segments.
 	// Use kd tree to make sure we don't get points too 
@@ -115,7 +116,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	for (var i = 0; i < groundMesh.geometry.vertices.length; i++) {
 
 		var v = groundMesh.geometry.vertices[i];
-		if(v.z !== worldFlatHeight) continue;
+		if(Math.abs(v.z - worldFlatHeight) > worldFlatEpsilon) continue;
 
 		var heightDistFromMid = Math.abs(v.originalHeight - flatMid);
 		if(heightDistFromMid < distThres){
@@ -164,7 +165,8 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 			// Discard road segment if the ground height at its mid point is 
 			// higher that the flat height (i.e not allowing roads to crash
 			// into small mountains, but allow bridges over water)
-			if(groundMesh.geometry.vertexAtPosition(xMid, yMid).z > worldFlatHeight){
+			var height = groundMesh.geometry.vertexAtPosition(xMid, yMid).z;
+			if(Math.abs(height - worldFlatHeight) > worldFlatEpsilon){
 				continue;
 			}
 

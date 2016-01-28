@@ -74,7 +74,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	var flatStart = shoreEnd;
 	var flatSize = controls.flat;
 	var flatEnd = flatStart + flatSize;
-
+	var flatEpsilon = 0.5 * Math.sqrt(scale) / controls.dim.x;
 
 	var newShoreSize = shoreSize*shoreScale;
 	var halfRestOfNewShoreSize = shoreSize*(1-shoreScale)/2;
@@ -91,7 +91,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 
 		height = (height < shoreStart) ? seabedHeight :
 					(height < flatStart) ? shoreHeight :
-						(height < flatEnd) ? flatHeight :
+						(height < flatEnd) ? flatHeight + height % flatEpsilon :
 							mountainHeight;
 
 		v.z = height * groundMesh.size.heightLimit;
@@ -109,6 +109,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	controls.flatEnd = flatEnd;
 
 	this.data = {
+		flatEpsilon: flatEpsilon,
 		flatStart: flatStart,
 		flatEnd: flatEnd,
 		flatHeight: flatHeight,

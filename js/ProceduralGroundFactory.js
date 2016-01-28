@@ -26,33 +26,28 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 	var groundGeometry = this.getGeometry(controls);
 
 	var sumHeight = 0;
-	var noiseLevels = 10;
+	var noiseLevels = 8;
 	var scale = controls.modelScale;
-	var heightLimit = 500*controls.terrain/scale;
+	var heightLimit = 250*controls.terrain/scale;
 
 	var minMaxHeight = new MinMax();
 
-	var oneOverSize = {
-		x: 1 / controls.size.x,
-		y: 1 / controls.size.y,
-	}
-
 	for (var i = 0; i < groundGeometry.vertices.length; i++) {
-		var v = groundGeometry.vertices[i];
-		var s = v.x * oneOverSize.x;
-		var t = v.y * oneOverSize.y;
+		var vertex = groundGeometry.vertices[i];
+		var u = controls.modelScale * vertex.x / controls.size.x + controls.seed.x;
+		var v = controls.modelScale * vertex.y / controls.size.y + controls.seed.y;
 
 		var height = 0;
 		for (var j = 0; j < noiseLevels; j++) {
 			var twoPowI = Math.pow(2, j);
-			height+= (0.7/(twoPowI)) * noise.simplex2(twoPowI*(scale*s + controls.seed.x), twoPowI*(scale*t + controls.seed.y));
+			height+= (0.7/(twoPowI)) * noise.simplex2(twoPowI*u, twoPowI*v);
 		};
 		height = controls.rivers ? Math.abs(height) : height;
 
-		v.originalHeight = height;
+		vertex.originalHeight = height;
 
 		height*= heightLimit;
-		v.z = height;
+		vertex.z = height;
 
 		sumHeight+= height;
 		minMaxHeight.add(height);
@@ -66,7 +61,6 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 
 	// Material
 	var groundMaterial = new THREE.MeshPhongMaterial( { color: 0x99bb55, shininess: 0, wireframe: false} );
-	//groundMaterial = new THREE.MeshPhongMaterial({ vertexColors: THREE.VertexColors });
 
 	var newGroundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
 	newGroundMesh.segments = controls.dim;
