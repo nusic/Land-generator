@@ -14,6 +14,7 @@ function ProceduralWorldFactory(size){
 		new ProceduralSurroundingFactory('surrounding'),
 		new ProceduralRoadNetworkFactory('roads'),
 		new ProceduralBuildingFactory('buildings'),
+		//new ProceduralTreeFactory('trees'),
 	];
 }
 

@@ -71,7 +71,8 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 		return dx*dx + dy*dy
 	}
 
-	var houseTree = new kdTree([], norm2, ['x', 'y']);
+	var buildingTree = new kdTree([], norm2, ['x', 'y']);
+	var buildingIntegrity = 4*buildingScale*buildingScale;
 	for (var i = 0; i < roads.length; i++) {
 		var roadSegment = roads[i];
 		var v1 = roadSegment[0];
@@ -88,6 +89,12 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 		// We don't want buildings blocking the roads, so place it right next to it
 		var x = xMid + 1.5*buildingScale*Math.cos(-rotation);
 		var y = yMid + 1.5*buildingScale*Math.sin(-rotation);
+
+		// Building cannot be too close to other buildings
+		var buildingPosition = {x:x, y:y};
+		if(buildingTree.nearest(buildingPosition, 1, buildingIntegrity).length){
+			continue;
+		}
 
 		try{
 			// If the position not is on flat ground, discard this building
@@ -113,6 +120,7 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 		
 
 		buildingMeshGroup.children.push(buildingMesh);
+		buildingTree.insert(buildingPosition);
 
 
 		/*

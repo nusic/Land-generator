@@ -105,7 +105,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var integrity2 = integrity*integrity;
 	var maxRoadLength2 = maxRoadLength*maxRoadLength;
 
-	var roadWidth = 0.1*integrity;
+	var roadWidth = 0.2*integrity;
 	var roadHeight = worldFlatHeight + worldFlatEpsilon; // Push roads up a little above ground
 
 	// Collect points that will connect road segments.

@@ -34,8 +34,6 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 
 	for (var i = 0; i < groundGeometry.vertices.length; i++) {
 		var vertex = groundGeometry.vertices[i];
-		//var u = controls.modelScale * vertex.x / controls.size.x + controls.seed.x;
-		//var v = controls.modelScale * vertex.y / controls.size.y + controls.seed.y;
 		var noiseCoords = controls.noiseCoords(vertex);
 
 		var height = 0;
