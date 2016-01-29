@@ -34,13 +34,14 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 
 	for (var i = 0; i < groundGeometry.vertices.length; i++) {
 		var vertex = groundGeometry.vertices[i];
-		var u = controls.modelScale * vertex.x / controls.size.x + controls.seed.x;
-		var v = controls.modelScale * vertex.y / controls.size.y + controls.seed.y;
+		//var u = controls.modelScale * vertex.x / controls.size.x + controls.seed.x;
+		//var v = controls.modelScale * vertex.y / controls.size.y + controls.seed.y;
+		var noiseCoords = controls.noiseCoords(vertex);
 
 		var height = 0;
 		for (var j = 0; j < noiseLevels; j++) {
 			var twoPowI = Math.pow(2, j);
-			height+= (0.7/(twoPowI)) * noise.simplex2(twoPowI*u, twoPowI*v);
+			height+= (0.7/(twoPowI)) * noise.simplex2(twoPowI*noiseCoords.u, twoPowI*noiseCoords.v);
 		};
 		height = controls.rivers ? Math.abs(height) : height;
 

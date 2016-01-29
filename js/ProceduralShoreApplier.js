@@ -81,6 +81,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	var shoreHeightRatio = newShoreSize / shoreSize;
 	var flatHeight = flatStart - halfRestOfNewShoreSize;
 
+	var noiseFreq = 500 / Math.sqrt(controls.modelScale);
 	for (var i = 0; i < groundMesh.geometry.vertices.length; i++) {
 		var v = groundMesh.geometry.vertices[i];
 		var height = v.z / groundMesh.size.heightLimit;
@@ -91,10 +92,13 @@ ProceduralShoreApplier.prototype.create = function(controls){
 
 		height = (height < shoreStart) ? seabedHeight :
 					(height < flatStart) ? shoreHeight :
-						(height < flatEnd) ? flatHeight + height % flatEpsilon :
+						(height < flatEnd) ? flatHeight :
 							mountainHeight;
 
-		v.z = height * groundMesh.size.heightLimit;
+		var noiseCoords = controls.noiseCoords(v);
+		var hiFreqNoise = (0.5 / noiseFreq) * (1+noise.simplex2(noiseFreq * noiseCoords.u, noiseFreq * noiseCoords.v));
+
+		v.z = (height+hiFreqNoise) * groundMesh.size.heightLimit;
 	}
 
 	groundMesh.flatHeight = flatHeight * groundMesh.size.heightLimit;

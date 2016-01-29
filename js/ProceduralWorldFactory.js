@@ -81,6 +81,12 @@ ProceduralWorldFactory.prototype.preprocessControls = function(controls) {
 		x: this.size.x,
 		y: this.size.y,
 	};
+
+	controls.noiseCoords = function(vertex){
+		var u = this.modelScale * vertex.x / this.size.x + this.seed.x;
+		var v = this.modelScale * vertex.y / this.size.y + this.seed.y;
+		return {u:u, v:v};
+	}
 };
 
 

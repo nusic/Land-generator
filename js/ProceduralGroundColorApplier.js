@@ -51,10 +51,9 @@ ProceduralGroundColorApplier.prototype.create = function(controls) {
 		var faceVertex = groundMesh.geometry.vertices[face.a];
 		var height = faceVertex.z * controls.modelScale;
 
-		var u = controls.modelScale * faceVertex.x / controls.size.x + controls.seed.x;
-		var v = controls.modelScale * faceVertex.y / controls.size.y + controls.seed.y;
-
-		face.color.copy(this.getColor(height + 50 * noise.simplex2(u,v)));
+		var noiseCoords = controls.noiseCoords(faceVertex);
+		var heightNoise = 50 * noise.simplex2(noiseCoords.u, noiseCoords.v);
+		face.color.copy(this.getColor(height + heightNoise));
 	};
 
 	groundMesh.geometry.colorsNeedUpdate = true;
