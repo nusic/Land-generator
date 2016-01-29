@@ -99,7 +99,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	}
 
 	var distance = norm2;
-	var integrity = 100*(1.3 - 1*controls.city_scale);///scale;
+	var integrity = 20/controls.modelScale;///scale;
 	var maxRoadLength = 5 * integrity;
 
 	var integrity2 = integrity*integrity;
