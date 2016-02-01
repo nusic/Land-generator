@@ -1,8 +1,8 @@
 function ProceduralGroundColorApplier(label, colorScheme){
 	this.label = label;
 	this.colorControlPoints = [
-		{height: 0, hexcolor: 0xc2b280},
-		{height: 20, hexcolor: 0x66dd66},
+		{height: -10, hexcolor: 0xc2b280},
+		{height: 10, hexcolor: 0x66dd66},
 		{height: 30, hexcolor: 0xc2b280},
 		{height: 90, hexcolor: 0x777777},
 		{height: 110, hexcolor: 0xffffff},
@@ -44,15 +44,15 @@ ProceduralGroundColorApplier.prototype.create = function(controls) {
 	for (var faceIndex = 0; faceIndex < groundMesh.geometry.faces.length; faceIndex++) {
 		var vc = groundMesh.geometry.faces[faceIndex].vertexColors = [];
 	}
-
+	console.log(controls);
 	// Set a color to each faces' vertices
 	for (var faceIndex = 0; faceIndex < groundMesh.geometry.faces.length; faceIndex++) {
 		var face = groundMesh.geometry.faces[faceIndex];
 		var faceVertex = groundMesh.geometry.vertices[face.a];
-		var height = faceVertex.z * controls.modelScale;
-
+		var height = (faceVertex.z - ((controls.sea_level-0.5)*groundMesh.size.heightLimit)) * controls.modelScale
+		
 		var noiseCoords = controls.noiseCoords(faceVertex);
-		var heightNoise = 50 * noise.simplex2(noiseCoords.u, noiseCoords.v);
+		var heightNoise = 30 * noise.simplex2(2*noiseCoords.u, 2*noiseCoords.v);
 		face.color.copy(this.getColor(height + heightNoise));
 	};
 
