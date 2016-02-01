@@ -9,14 +9,13 @@ UserControls.prototype.init = function() {
 	var controlsAndDefaults = [
 		{inputType: 'number', name: 'x', value: 33},
 		{inputType: 'number', name: 'y', value: 3},
-		{inputType: 'slider', name: 'quality', value: 0.5},
+		//{inputType: 'slider', name: 'quality', value: 0.5},
 		{inputType: 'checkbox', name: 'rivers', value: true},
 		{inputType: 'slider', name: 'terrain', value: 0.25},
 		{inputType: 'slider', name: 'scale', value: 0.5},
 		{inputType: 'slider', name: 'sea level', value: 0.55},
 		{inputType: 'slider', name: 'flat', value: 0.2},
 		{inputType: 'slider', name: 'shore', value: 0.2},
-		{inputType: 'slider', name: 'shore slope', value: 0.5},
 		{inputType: 'slider', name: 'cityness', value: 0.11, rebuildFrom: 'roads'},
 	];
 
@@ -72,18 +71,21 @@ UserControls.prototype.checkbox = function(name, value) {
 };
 
 UserControls.prototype.getControls = function() {
-	var state = {};
+	var controls = {};
 	for (var i = 0; i < this.controlElements.length; i++) {
 		var control = this.controlElements[i];
 		if(control.attr('type') === 'range'){
-			state[control.attr('id')] = 0.01*Number(control[0].value);
+			controls[control.attr('id')] = 0.01*Number(control[0].value);
 		}
 		if(control.attr('type') === 'number'){
-			state[control.attr('id')] = Number(control[0].value);
+			controls[control.attr('id')] = Number(control[0].value);
 		}
 		if(control.attr('type') === 'checkbox'){
-			state[control.attr('id')] = control[0].checked;
+			controls[control.attr('id')] = control[0].checked;
 		}
 	};
-	return state;
+
+	// Add default quality 0.5
+	controls.quality = 0.5;
+	return controls;
 };

@@ -66,7 +66,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	var seaLevel = (controls.sea_level-0.5);
 
 	var shoreSize = 0.02+0.5*controls.shore;
-	var shoreScale = controls.shore_slope;
+	var shoreScale = 0.5;
 
 	var shoreStart = seaLevel - shoreSize/2;
 	var shoreEnd = seaLevel + shoreSize/2;

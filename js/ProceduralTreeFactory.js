@@ -69,7 +69,7 @@ ProceduralTreeFactory.prototype.create = function(controls) {
 		var face = groundMesh.geometry.faces[i];
 		var v = groundMesh.geometry.vertices[face.a];
 
-		if(Math.abs(v.z - worldFlatHeight) > 5*worldFlatEpsilon) continue;
+		if(v.z - worldFlatHeight < 0) continue;
 		
 		var closeTrees = treeTree.nearest(v, 1, integrity2);
 		if(closeTrees.length) continue;
@@ -80,7 +80,7 @@ ProceduralTreeFactory.prototype.create = function(controls) {
 		}
 			
 		var greenRedDiff = face.color.g - face.color.r;
-		if(greenRedDiff < 0) continue;
+		if(greenRedDiff < 0.1) continue;
 
 
 		treeTree.insert(v);
