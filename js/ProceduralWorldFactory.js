@@ -14,7 +14,7 @@ function ProceduralWorldFactory(size){
 		new ProceduralSurroundingFactory('surrounding'),
 		new ProceduralRoadNetworkFactory('roads'),
 		new ProceduralBuildingFactory('buildings'),
-		//new ProceduralTreeFactory('trees'),
+		new ProceduralTreeFactory('trees'),
 	];
 }
 
@@ -46,9 +46,20 @@ ProceduralWorldFactory.prototype.addLights = function(scene) {
 	lightGroup.children.push(hemiLight);
 
 	var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.7 );
-	directionalLight.position.set( -1, 1, 0 );
+	directionalLight.position.set( -500, 500, 0 );
+
+	directionalLight.shadow.camera.near = 0.1;
+    directionalLight.shadow.camera.far = 1200;
+    directionalLight.shadow.bias = 0.00001;
+    directionalLight.shadow.mapSize.x = 2048;
+    directionalLight.shadow.mapSize.y = 2048;
+    directionalLight.shadowDarkness = 1;
+    directionalLight.shadow.camera.updateProjectionMatrix();
+    directionalLight.castShadow = true;
 	lightGroup.children.push(directionalLight);
 
+	//var camHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+	//lightGroup.add(camHelper)
 	scene.add(lightGroup);
 };
 
@@ -96,8 +107,14 @@ ProceduralWorldFactory.prototype.clearScene = function(rebuildFrom) {
 		scene.children.splice(this.numStartChildren);
 	}
 	else{
-		var rebuildFromIndex = scene.children.indexOf(rebuildFrom);
-		scene.children.splice(rebuildFromIndex-1);
+
+		var rebuildFromIndex = scene.children.map(function(node){ 
+			return node.name; 
+		}).indexOf(rebuildFrom);
+		if(rebuildFromIndex === -1) {
+			throw new Error('name of node to rebuild from was not found');
+		}
+		scene.children.splice(rebuildFromIndex);
 	}
 };
 

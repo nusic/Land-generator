@@ -83,6 +83,9 @@ ProceduralGroundFactory.prototype.create = function(controls) {
 	this.data = {
 		groundMesh: newGroundMesh,
 	}
+
+	newGroundMesh.castShadow = true;
+	newGroundMesh.receiveShadow = true;
 	return newGroundMesh;
 };
 

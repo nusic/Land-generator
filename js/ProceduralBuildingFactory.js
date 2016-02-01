@@ -40,6 +40,8 @@ ProceduralBuildingFactory.prototype.createBuilding = function(scale) {
 	var material = this.getBuildingMaterial();
 	var buildingMesh = new THREE.Mesh(this.houseBaseGeometry, material);
 	buildingMesh.scale.multiplyScalar(scale);
+	buildingMesh.castShadow = true;
+	buildingMesh.receiveShadow = true;
 
 	// Scale one of the axes to get variation
 	var axisToScale = "xyz".charAt((this.numBuildings >> 2) % 3);
@@ -112,7 +114,8 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 			continue; 
 		}
 
-		var buildingMesh = this.createBuilding(buildingScale);
+		var pos = {x: x, y: y, x: groundMesh.flatHeight };
+		var buildingMesh = this.createBuilding(buildingScale, x, y);
 		buildingMesh.rotation.y = -rotation - Math.PI * 0.5;
 		buildingMesh.position.x = x;
 		buildingMesh.position.y = groundMesh.flatHeight;
@@ -131,6 +134,10 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 		buildingMesh.rotation.y = -rotation - Math.PI * 0.5;
 		buildingMeshGroup.children.push(buildingMesh);
 		*/
+	};
+
+	this.data = {
+		buildingTree: buildingTree
 	};
 
 	return buildingMeshGroup;

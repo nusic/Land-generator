@@ -39,6 +39,7 @@
 		<script src="js/ProceduralSurroundingFactory.js"></script>
 		<script src="js/ProceduralRoadNetworkFactory.js"></script>
 		<script src="js/ProceduralBuildingFactory.js"></script>
+		<script src="js/ProceduralTreeFactory.js"></script>
 
 		<script src="js/UserControls.js"></script>
 
@@ -90,6 +91,8 @@
 			}
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			renderer.setClearColor(0x000000);
+			renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 			document.getElementById('container').appendChild(renderer.domElement);
 
 

@@ -81,7 +81,7 @@ ProceduralShoreApplier.prototype.create = function(controls){
 	var shoreHeightRatio = newShoreSize / shoreSize;
 	var flatHeight = flatStart - halfRestOfNewShoreSize;
 
-	var noiseFreq = 500 / Math.sqrt(controls.modelScale);
+	var noiseFreq = 1 / flatEpsilon;
 	for (var i = 0; i < groundMesh.geometry.vertices.length; i++) {
 		var v = groundMesh.geometry.vertices[i];
 		var height = v.z / groundMesh.size.heightLimit;

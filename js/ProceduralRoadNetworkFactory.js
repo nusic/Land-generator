@@ -48,6 +48,7 @@ ProceduralRoadNetworkFactory.prototype.createRoadSegmentBetween = function(v1, v
 	roadSegmentMesh.rotation.z = -Math.atan2(v2.x-v1.x, v2.y-v1.y) + Math.PI / 2;
 	roadSegmentMesh.rotation.x = -0.5 * Math.PI;
 
+	roadSegmentMesh.receiveShadow = true;
 	return roadSegmentMesh;
 };
 
@@ -106,7 +107,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	var maxRoadLength2 = maxRoadLength*maxRoadLength;
 
 	var roadWidth = 0.2*integrity;
-	var roadHeight = worldFlatHeight + worldFlatEpsilon; // Push roads up a little above ground
+	var roadHeight = worldFlatHeight + 2*worldFlatEpsilon; // Push roads up a little above ground
 
 	// Collect points that will connect road segments.
 	// Use kd tree to make sure we don't get points too 
