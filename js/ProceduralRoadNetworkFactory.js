@@ -130,7 +130,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 	};
 
 	var roads = [];
-	var maxRoadConnections = controls.cityness < 0.5 ? 3 : 4;
+	var maxRoadConnections = controls.cityness < 0.7 ? 3 : 4;
 	var roadSegmentsMidTree = new kdTree([], distance, ['x', 'y']);
 	for (var i = 0; i < roadAnchorPoints.length; i++) {
 		var anchor = roadAnchorPoints[i];
@@ -167,7 +167,7 @@ ProceduralRoadNetworkFactory.prototype.create = function(controls) {
 			// higher that the flat height (i.e not allowing roads to crash
 			// into small mountains, but allow bridges over water)
 			var height = groundMesh.geometry.vertexAtPosition(xMid, yMid).z;
-			if(Math.abs(height - worldFlatHeight) > worldFlatEpsilon){
+			if(height - worldFlatEpsilon > worldFlatHeight){
 				continue;
 			}
 

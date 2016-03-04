@@ -2,7 +2,7 @@ function ProceduralGroundColorApplier(label, colorScheme){
 	this.label = label;
 	this.colorControlPoints = [
 		{height: -10, hexcolor: 0xc2b280},
-		{height: 10, hexcolor: 0x66dd66},
+		{height: 10, hexcolor: 0x76bb56},
 		{height: 30, hexcolor: 0xc2b280},
 		{height: 90, hexcolor: 0x777777},
 		{height: 110, hexcolor: 0xffffff},
@@ -52,7 +52,7 @@ ProceduralGroundColorApplier.prototype.create = function(controls) {
 		var height = (faceVertex.z - ((controls.sea_level-0.5)*groundMesh.size.heightLimit)) * controls.modelScale
 		
 		var noiseCoords = controls.noiseCoords(faceVertex);
-		var heightNoise = 30 * noise.simplex2(2*noiseCoords.u, 2*noiseCoords.v);
+		var heightNoise = 20 * noise.simplex2(2*noiseCoords.u, 2*noiseCoords.v);
 		face.color.copy(this.getColor(height + heightNoise));
 	};
 

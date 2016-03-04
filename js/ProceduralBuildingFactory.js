@@ -2,13 +2,20 @@ function ProceduralBuildingFactory (label) {
 	this.label = label;
 	this.numBuildings = 0;
 
-	// Create a cube geometry
+	// Create a cube geometry with 12 vertices (i.e 4 extra vertices)
+	// constructor arguments: size in xyz is 1, 1, 1
+	//                        number of segments along xyz axis is 1, 1, 2 
 	this.houseBaseGeometry = new THREE.CubeGeometry(1, 1, 1, 1, 1, 2);
 
 	// side 1   side 2   top     
 	// +-+-+    +---+   +---+
 	// |   |    |   |   +   +
 	// +-+-+    +---+   +---+  
+	//    
+	// ^ X      ^ Y     ^ Z  
+	// |        |       |    
+	// +-->Z    +-->X   +-->X
+
 
 	// And displace two vertices so that we get a simple house base geometry
 	this.houseBaseGeometry.vertices[1].y += 0.25;
@@ -24,8 +31,9 @@ function ProceduralBuildingFactory (label) {
 	
 
 	this.buildingMaterials = [
-		new THREE.MeshPhongMaterial( { color: 0xffffff, shininess: 0, wireframe: false} ),
+		new THREE.MeshPhongMaterial( { color: 0xffffbb, shininess: 0, wireframe: false} ),
 		new THREE.MeshPhongMaterial( { color: 0x855E42, shininess: 0} ),
+		new THREE.MeshPhongMaterial( { color: 0xb05858, shininess: 0} ),
 	]
 }
 
@@ -35,16 +43,28 @@ ProceduralBuildingFactory.prototype.getBuildingMaterial = function() {
 
 
 
-ProceduralBuildingFactory.prototype.createBuilding = function(scale) {
+ProceduralBuildingFactory.prototype.createBuilding = function(controls, pos) {
+	
 	var buildingGroup = new THREE.Object3D();
+	var coords = controls.noiseCoords(pos);
+	var numMats = this.buildingMaterials.length;
+	var materialIndex = Math.floor((1+noise.simplex2(5*coords.u, 5*coords.v + 43)) * numMats / 2);
+	
 	var material = this.getBuildingMaterial();
 	var buildingMesh = new THREE.Mesh(this.houseBaseGeometry, material);
+	
+
+	var scale = 0.2*controls.roadsData.integrity;
 	buildingMesh.scale.multiplyScalar(scale);
 	buildingMesh.castShadow = true;
 	buildingMesh.receiveShadow = true;
 
 	// Scale one of the axes to get variation
-	var axisToScale = "xyz".charAt((this.numBuildings >> 2) % 3);
+
+	
+	var axisIndex = Math.floor((1 + noise.simplex2(5*coords.u, 5*coords.v)) * 3 / 2);
+	var axisToScale = "xyz".charAt(axisIndex);
+
 	buildingMesh.scale[axisToScale] *= 1.5;
 	buildingGroup.add(buildingMesh);
 
@@ -62,7 +82,7 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 
 	var groundMesh = controls.groundData.groundMesh;
 	var roads = controls.roadsData.roads;
-	var buildingScale = 0.2 * controls.roadsData.integrity;
+	var buildingScale = 0.2*controls.roadsData.integrity;
 
 	var worldFlatHeight = controls.shoresData.flatHeight * groundMesh.size.heightLimit;
 	var worldFlatEpsilon = controls.shoresData.flatEpsilon * groundMesh.size.heightLimit;
@@ -115,7 +135,7 @@ ProceduralBuildingFactory.prototype.create = function(controls) {
 		}
 
 		var pos = {x: x, y: y, x: groundMesh.flatHeight };
-		var buildingMesh = this.createBuilding(buildingScale, x, y);
+		var buildingMesh = this.createBuilding(controls, buildingPosition);
 		buildingMesh.rotation.y = -rotation - Math.PI * 0.5;
 		buildingMesh.position.x = x;
 		buildingMesh.position.y = groundMesh.flatHeight;
