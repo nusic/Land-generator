@@ -9,14 +9,14 @@ UserControls.prototype.init = function() {
 	var controlsAndDefaults = [
 		{inputType: 'number', name: 'x', value: 33},
 		{inputType: 'number', name: 'y', value: 3},
-		//{inputType: 'slider', name: 'quality', value: 0.5},
+		{inputType: 'slider', name: 'quality', value: 0.5, display: 'none'},
 		{inputType: 'checkbox', name: 'rivers', value: true},
-		{inputType: 'slider', name: 'terrain', value: 0.25},
-		{inputType: 'slider', name: 'scale', value: 0.5},
+		{inputType: 'slider', name: 'terrain', value: 0.69},
+		{inputType: 'slider', name: 'scale', value: 0.72},
 		{inputType: 'slider', name: 'sea level', value: 0.55},
 		{inputType: 'slider', name: 'flat', value: 0.2},
-		{inputType: 'slider', name: 'shore', value: 0.2},
-		{inputType: 'slider', name: 'cityness', value: 0.11, rebuildFrom: 'roads'},
+		{inputType: 'slider', name: 'shore', value: 0.13, display: 'none'},
+		{inputType: 'slider', name: 'cityness', value: 0.24, rebuildFrom: 'roads'},
 	];
 
 	for (var i = 0; i < controlsAndDefaults.length; i++) {
@@ -24,7 +24,8 @@ UserControls.prototype.init = function() {
 		var inputType = controlsAndDefaults[i].inputType;
 		var name = controlsAndDefaults[i].name;
 		var value = controlsAndDefaults[i].value;
-		var controlElement = this[inputType](name, value);
+		var display = controlsAndDefaults[i].display === undefined ? 'inline-block' : controlsAndDefaults[i].display;
+		var controlElement = this[inputType](name, value, display);
 		this.controlElements.push(controlElement);
 
 		// init rebuildFromMap
@@ -32,39 +33,48 @@ UserControls.prototype.init = function() {
 	};
 };
 
-UserControls.prototype.createDefualtInput = function(name, value) {
-	$(this.domElement).append($('<span>&nbsp;' + name + ':</span>'));
+UserControls.prototype.createDefualtInput = function(name, value, display) {
+	// Label element
+	var $labelElement = $('<span>&nbsp;' + name + ':</span>');
+	$labelElement.attr('style', 'display:' + display);
+
+	// input element
 	var $inputElement = $('<input>');
 	$inputElement.attr('tabIndex','-1');
 	var propertyName = name.replace(/ /g, '_');
 	$inputElement.attr('id', propertyName);
+	$inputElement.attr('style', 'display:' + display);
 
 	var self = this;
 	$inputElement.change(function(event){
 		var rebuildFrom = self.rebuildFromMap[event.target.id];
-		rebuildScene(rebuildFrom);
+		var controls = self.getControls();
+		//rebuildScene(rebuildFrom);
+		worldFactory.createAndSetScene(controls, rebuildFrom);
 	});
-
+	
+	$(this.domElement).append($labelElement);
 	$(this.domElement).append($inputElement);
+
 	return $inputElement;
 };
 
-UserControls.prototype.slider = function(name, value) {
-	$inputElement = this.createDefualtInput(name, value);
+UserControls.prototype.slider = function(name, value, display) {
+	$inputElement = this.createDefualtInput(name, value, display);
 	$inputElement.attr('value', 100*value);
 	$inputElement.attr('type', 'range');
 	return $inputElement;
 };
 
-UserControls.prototype.number = function(name, value) {
-	$inputElement = this.createDefualtInput(name, value);
+UserControls.prototype.number = function(name, value, display) {
+	$inputElement = this.createDefualtInput(name, value, display);
 	$inputElement.attr('value', value);
 	$inputElement.attr('type', 'number');
 	return $inputElement;
 };
 
-UserControls.prototype.checkbox = function(name, value) {
-	$inputElement = this.createDefualtInput(name, value);
+UserControls.prototype.checkbox = function(name, value, display) {
+	$inputElement = this.createDefualtInput(name, value, display);
 	$inputElement.attr('checked', value);
 	$inputElement.attr('type', 'checkbox');
 	return $inputElement;
@@ -84,8 +94,5 @@ UserControls.prototype.getControls = function() {
 			controls[control.attr('id')] = control[0].checked;
 		}
 	};
-
-	// Add default quality 0.5
-	controls.quality = 0.5;
 	return controls;
 };
