@@ -72,7 +72,7 @@ ProceduralTreeFactory.prototype.create = function(controls) {
 		if(v.z - worldFlatHeight < 0) continue;
 
 		var greenRedDiff = face.color.g - face.color.r;
-		if(greenRedDiff < 0) continue;
+		if(greenRedDiff < 0.1) continue;
 		
 		var closeTrees = treeTree.nearest(v, 1, integrity2 / (0.1 + 5*greenRedDiff));
 		if(closeTrees.length) continue;
