@@ -17,6 +17,7 @@ UserControls.prototype.init = function() {
 		{inputType: 'slider', name: 'flat', value: 0.2},
 		{inputType: 'slider', name: 'shore', value: 0.13, display: 'none'},
 		{inputType: 'slider', name: 'cityness', value: 0.24, rebuildFrom: 'roads'},
+		{inputType: 'slider', name: 'trees', value: true, rebuildFrom: 'trees'},
 	];
 
 	for (var i = 0; i < controlsAndDefaults.length; i++) {
